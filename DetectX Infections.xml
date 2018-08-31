@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><extensionAttribute>
+<displayName>DetectX Infections</displayName>
+<description>Reports the paths of any infections found by DetectX</description>
+<dataType>string</dataType>
+<scriptContentsMac>#!/usr/bin/python&#13;
+"""&#13;
+Read DetectX Results and report any discovered infections&#13;
+&#13;
+Results:&#13;
+'' (empty string): RESULTFILE was not found or not readable. Implies a search&#13;
+                   has not yet been run, or the results were invalid JSON.&#13;
+'None': The DetectX search was run, but did not find any infections.&#13;
+(list): A list of detected infections (file paths)&#13;
+"""&#13;
+&#13;
+&#13;
+import os&#13;
+import json&#13;
+&#13;
+&#13;
+# Path to DetectX Result file&#13;
+RESULTFILE = '/Library/Application Support/JAMF/Addons/DetectX/results.json'&#13;
+&#13;
+&#13;
+def decode_results(path):&#13;
+    """Decodes the JSON object at path 'path' and returns a list of discovered&#13;
+    infections"""&#13;
+    infections = []&#13;
+    try:&#13;
+        with open(path, 'r') as data:&#13;
+            try:&#13;
+                results = json.load(data)&#13;
+                infections = results['infections']&#13;
+            except (KeyError, ValueError):&#13;
+                pass&#13;
+    except (OSError, IOError):&#13;
+        pass&#13;
+    return infections&#13;
+&#13;
+&#13;
+def main():&#13;
+    """Main"""&#13;
+    if os.path.exists(RESULTFILE):&#13;
+        infections = decode_results(RESULTFILE)&#13;
+        if len(infections) &gt; 0:&#13;
+            EA = '\n'.join(infections)&#13;
+        else:&#13;
+            EA = 'None'&#13;
+    else:&#13;
+        EA = ''&#13;
+    print '&lt;result&gt;%s&lt;/result&gt;' % EA&#13;
+&#13;
+&#13;
+if __name__ == '__main__':&#13;
+    main()&#13;
+</scriptContentsMac>
+</extensionAttribute>
