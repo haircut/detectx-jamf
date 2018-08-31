@@ -51,7 +51,7 @@ def run_detectx_search():
         stdout, error = proc.communicate()
     except (IOError, OSError):
         pass
-    return True if not error else False
+    return True if not proc.returncode == 0 else False
 
 
 def run_jamf_policy(p):
