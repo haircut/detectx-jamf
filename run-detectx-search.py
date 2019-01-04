@@ -12,7 +12,7 @@ from CoreFoundation import CFPreferencesCopyAppValue
 
 
 # Full path to DetectX Swift.app
-DX = "/Applications/Utilities/DetectX Swift.app"
+DX = "/Applications/DetectX Swift.app"
 # Full path to output file for writing results
 RESULTFILE = "/Library/Application Support/JAMF/Addons/DetectX/results.json"
 # Minimum version of DetectX Swift
@@ -48,10 +48,14 @@ def run_detectx_search():
         cmd = [exe, 'search', '-aj', RESULTFILE]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
-        stdout, error = proc.communicate()
-    except (IOError, OSError):
-        pass
-    return True if not proc.returncode == 0 else False
+        stdout, _ = proc.communicate()
+        if stdout:
+            print stdout
+    except (IOError, OSError) as e:
+        print e
+    except subprocess.CalledProcessError as e:
+        print e
+    return True if proc.returncode == 0 else False
 
 
 def run_jamf_policy(p):
@@ -90,7 +94,10 @@ def main():
     if not check_detectx_version():
         print ("The installed version of DetectX does not meet the "
                "minimum required version {}.".format(MINIMUM_VERSION))
-        sys.exit(1)
+        print ("Attempting to update...")
+        if not run_jamf_policy(JAMF_TRIGGER)['success'] or not check_detectx_version():
+            print ("Unable to install or update DetectX Swift; exiting.")
+            sys.exit(1)
     # Run DetectX Search
     detectx_search = run_detectx_search()
     if detectx_search:
